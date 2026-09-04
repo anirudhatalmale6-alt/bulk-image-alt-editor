@@ -16,8 +16,12 @@ Two small CSS/JS files.
 
 ## Install
 
+> **Download the zip from [Releases](../../releases)** — the file named
+> `bulk-image-alt-editor.zip`. Do **not** use the green "Code → Download ZIP"
+> button: that wraps everything in an extra folder and WordPress will reject it.
+
 1. Download `bulk-image-alt-editor.zip` from
-   [Releases](../../releases) (or zip the `bulk-image-alt-editor` folder yourself).
+   [Releases](../../releases).
 2. WordPress admin > **Plugins > Add New > Upload Plugin** > choose the zip >
    **Install Now** > **Activate Plugin**.
 3. The screen appears at **Media > Bulk Alt Editor**.
