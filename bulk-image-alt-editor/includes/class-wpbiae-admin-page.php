@@ -13,6 +13,22 @@ defined( 'ABSPATH' ) || exit;
 class WPBIAE_Admin_Page {
 
 	/**
+	 * Largest page size the screen will accept.
+	 *
+	 * Core's own Screen Options cap is 999; this is deliberately lower because
+	 * every row renders a thumbnail, and past a few hundred the page gets heavy
+	 * without being any more useful than "select all matching".
+	 */
+	const MAX_PER_PAGE = 500;
+
+	/**
+	 * Page sizes offered by the quick-set links above the table.
+	 *
+	 * @var int[]
+	 */
+	const PER_PAGE_CHOICES = array( 20, 50, 100, 200, 500 );
+
+	/**
 	 * Singleton.
 	 *
 	 * @var WPBIAE_Admin_Page|null
@@ -84,6 +100,7 @@ class WPBIAE_Admin_Page {
 
 		$this->handle_undo();
 		$this->handle_apply();
+		$this->handle_per_page();
 		$this->read_notice();
 
 		add_screen_option(
@@ -119,10 +136,81 @@ class WPBIAE_Admin_Page {
 		if ( 'wpbiae_per_page' === $option ) {
 			$value = (int) $value;
 
-			return ( $value > 0 && $value <= 500 ) ? $value : 20;
+			return ( $value > 0 && $value <= self::MAX_PER_PAGE ) ? $value : 20;
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Apply a page size chosen from the quick-set links above the table.
+	 *
+	 * Writes the same user meta key Screen Options uses, so the two controls
+	 * stay in step and the choice sticks between visits.
+	 */
+	private function handle_per_page() {
+		if ( ! isset( $_GET['wpbiae_pp'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+
+		// A stale link is ignored rather than fatal: this only changes how many
+		// rows the current user sees, so there is nothing to die over.
+		if ( ! wp_verify_nonce( $nonce, 'wpbiae_pp' ) ) {
+			return;
+		}
+
+		$per_page = (int) $_GET['wpbiae_pp']; // phpcs:ignore WordPress.Security.NonceVerification
+
+		if ( $per_page < 1 || $per_page > self::MAX_PER_PAGE ) {
+			return;
+		}
+
+		update_user_meta( get_current_user_id(), 'wpbiae_per_page', $per_page );
+	}
+
+	/**
+	 * The "Show per page: 20 50 100 200 500" links.
+	 *
+	 * @param int   $current Page size in force.
+	 * @param array $filters Screen filters, so the links keep the current view.
+	 */
+	private function render_per_page_links( $current, array $filters ) {
+		$base = array(
+			'page'       => WPBIAE_SLUG,
+			'alt_filter' => $filters['alt'],
+			'orderby'    => $filters['orderby'],
+			'order'      => $filters['order'],
+			'paged'      => 1,
+		);
+
+		if ( '' !== $filters['search'] ) {
+			$base['s'] = $filters['search'];
+		}
+
+		$links = array();
+
+		foreach ( self::PER_PAGE_CHOICES as $choice ) {
+			if ( (int) $current === $choice ) {
+				$links[] = '<strong>' . esc_html( number_format_i18n( $choice ) ) . '</strong>';
+
+				continue;
+			}
+
+			$url = wp_nonce_url(
+				add_query_arg( array_merge( $base, array( 'wpbiae_pp' => $choice ) ), admin_url( 'upload.php' ) ),
+				'wpbiae_pp'
+			);
+
+			$links[] = '<a href="' . esc_url( $url ) . '">' . esc_html( number_format_i18n( $choice ) ) . '</a>';
+		}
+
+		printf(
+			'<div class="wpbiae-perpage">%1$s %2$s</div>',
+			esc_html__( 'Images per page:', 'bulk-image-alt-editor' ),
+			implode( ' <span class="wpbiae-sep">|</span> ', $links ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from esc_url/esc_html above.
+		);
 	}
 
 	/**
@@ -285,7 +373,7 @@ class WPBIAE_Admin_Page {
 	 * (pagination, sorting, views) do not carry it around.
 	 */
 	private function read_notice() {
-		$keys = array( 'wpbiae_msg', 'updated', 'unchanged', 'skipped', 'failed', 'undo', 'restored', '_wpnonce' );
+		$keys = array( 'wpbiae_msg', 'updated', 'unchanged', 'skipped', 'failed', 'undo', 'restored', 'wpbiae_pp', '_wpnonce' );
 
 		if ( isset( $_GET['wpbiae_msg'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$this->notice = array(
@@ -474,6 +562,8 @@ class WPBIAE_Admin_Page {
 					<span class="wpbiae-selectall-text"></span>
 					<a href="#" class="wpbiae-selectall-link"></a>
 				</div>
+
+				<?php $this->render_per_page_links( $table->per_page(), $filters ); ?>
 
 				<?php $table->display(); ?>
 

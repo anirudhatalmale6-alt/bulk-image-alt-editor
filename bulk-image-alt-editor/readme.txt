@@ -4,7 +4,7 @@ Tags: alt text, media library, accessibility, seo, bulk edit
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,7 +58,9 @@ Useful extras on that screen:
   to confirm first.
 * **Undo this change** - the success message carries an Undo button that puts the
   previous ALT values back. The undo snapshot lasts 24 hours or until used.
-* **Screen Options** (top right) - change how many images are listed per page.
+* **Images per page** - links above the table for 20, 50, 100, 200 or 500 at a
+  time. Your choice sticks between visits. Screen Options (top right) sets the
+  same thing if you prefer, and accepts any number up to 500.
 
 **Media > Library (list mode)**
 
@@ -114,6 +116,10 @@ No. It has no block editor dependency and no block assets.
 No. There are no external requests, no tracking and no settings to configure.
 
 == Changelog ==
+
+= 1.0.1 =
+* Added "Images per page" quick links above the table (20 / 50 / 100 / 200 /
+  500), so larger pages no longer have to be found under Screen Options.
 
 = 1.0.0 =
 * First release.

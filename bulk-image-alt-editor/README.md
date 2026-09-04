@@ -42,7 +42,7 @@ Extras on that screen:
 | Search | Matches titles, captions, descriptions and filenames. |
 | Select all N images matching this filter | Appears once you tick the header checkbox and there is more than one page. Applies to every image matching the current search and filter — never to the whole library unless that *is* your current filter. Asks for confirmation. |
 | Undo this change | In the success notice. Restores the previous ALT values. Valid for 24 hours or one use. |
-| Screen Options | Images per page. |
+| Images per page | Quick links above the table: 20 / 50 / 100 / 200 / 500. The choice is saved per user. Screen Options sets the same value and accepts anything up to 500. |
 
 **Media > Library (list mode)** also gains a **Set ALT text** bulk action, with
 an inline text field, driven by the same code.

@@ -63,6 +63,20 @@
 	text-decoration: underline;
 }
 
+.wpbiae-perpage {
+	clear: both;
+	margin: 0 0 6px;
+	color: #50575e;
+}
+
+.wpbiae-perpage strong {
+	color: #1d2327;
+}
+
+.wpbiae-perpage .wpbiae-sep {
+	color: #c3c4c7;
+}
+
 .wpbiae-filename {
 	color: #646970;
 	font-size: 12px;

@@ -152,6 +152,17 @@ class WPBIAE_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Rows shown on one page.
+	 *
+	 * @return int
+	 */
+	public function per_page() {
+		$args = $this->_pagination_args;
+
+		return isset( $args['per_page'] ) ? (int) $args['per_page'] : 20;
+	}
+
+	/**
 	 * Empty state.
 	 */
 	public function no_items() {
