@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Bulk Image ALT Editor
  * Description:       Overwrite the ALT text of many Media Library images at once. Type the text, tick exactly the images you want, press Apply. The value you type replaces the existing ALT completely - no prefixes, no suffixes.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.2
  * Author:            Anirudha Talmale
@@ -27,7 +27,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPBIAE_VERSION', '1.0.1' );
+define( 'WPBIAE_VERSION', '1.1.0' );
 define( 'WPBIAE_FILE', __FILE__ );
 define( 'WPBIAE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPBIAE_URL', plugin_dir_url( __FILE__ ) );

@@ -4,7 +4,7 @@ Tags: alt text, media library, accessibility, seo, bulk edit
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,29 @@ The same thing is available as a normal bulk action. Switch the Media Library to
 list mode, tick some images, choose **Set ALT text** from the Bulk actions
 dropdown, type the text in the field that appears, and press Apply.
 
+**ALT versus Title - they are different fields**
+
+* **ALT** is what screen readers announce and what search engines read. It is
+  normally invisible on the page.
+* **Title** is the name shown in bold in the File column. Most themes turn it
+  into the small tooltip that appears when you hover the mouse over an image.
+
+If the tooltip on your site says something like `my-photo-1-final`, that is the
+Title, not the ALT. Tick **Also set the image Title to the same text** before
+pressing Apply and both fields get your text.
+
+The same pair exists in the Media Library dropdown: **Set ALT text** and
+**Set ALT text and Title**.
+
+**Images already placed in a page or post**
+
+WordPress copies the ALT into the page's HTML at the moment you insert an image.
+That copy does not follow later changes. So this plugin updates images that your
+theme renders from the Media Library - featured images, galleries, product
+images, most page-builder blocks - immediately, but an image typed into a post
+years ago keeps whatever ALT was frozen into it then. Re-inserting that image,
+or editing it in the block editor, picks the new value up.
+
 **Clearing ALT text**
 
 Leaving the text field empty and pressing Apply clears the ALT text on the
@@ -116,6 +139,12 @@ No. It has no block editor dependency and no block assets.
 No. There are no external requests, no tracking and no settings to configure.
 
 == Changelog ==
+
+= 1.1.0 =
+* Added "Also set the image Title to the same text". Title is the field most
+  themes show as the hover tooltip; ALT alone never changes it.
+* Added a "Set ALT text and Title" bulk action in the Media Library.
+* Undo restores the Title as well as the ALT.
 
 = 1.0.1 =
 * Added "Images per page" quick links above the table (20 / 50 / 100 / 200 /

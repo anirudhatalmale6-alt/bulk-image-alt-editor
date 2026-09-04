@@ -117,18 +117,28 @@
 		}
 
 		// Delegated: catches both the row checkboxes and the select-all boxes in
-		// the table head and foot, whichever the user clicked.
+		// the table head and foot, whichever the user clicked. Deliberately
+		// ignores every other checkbox on the form - "Also set the Title" is one,
+		// and ticking it must not silently drop an all-matching selection.
 		form.addEventListener( 'click', function ( event ) {
 			var el = event.target;
 
-			if ( el && 'INPUT' === el.tagName && 'checkbox' === el.type ) {
-				if ( isApplyAll() ) {
-					setApplyAll( false );
-				}
-
-				// Let core's handler tick the rest of the column first.
-				window.setTimeout( refresh, 0 );
+			if ( ! el || 'INPUT' !== el.tagName || 'checkbox' !== el.type ) {
+				return;
 			}
+
+			var isSelector = 'wpbiae_ids[]' === el.name || !! el.closest( '.check-column' );
+
+			if ( ! isSelector ) {
+				return;
+			}
+
+			if ( isApplyAll() ) {
+				setApplyAll( false );
+			}
+
+			// Let core's handler tick the rest of the column first.
+			window.setTimeout( refresh, 0 );
 		} );
 
 		if ( bannerLink ) {
@@ -180,7 +190,12 @@
 			}
 
 			if ( altInput && '' === altInput.value.trim() ) {
-				if ( ! window.confirm( t( 'confirmEmpty', 'The ALT text field is empty. Applying it will clear the ALT text on the selected images. Continue?' ) ) ) {
+				var alsoTitle = document.getElementById( 'wpbiae-also-title' );
+				var message   = ( alsoTitle && alsoTitle.checked )
+					? t( 'confirmEmptyTitle', 'The text field is empty. Applying it will clear the ALT text AND blank the Title on the images you selected. Continue?' )
+					: t( 'confirmEmpty', 'The ALT text field is empty. Applying it will clear the ALT text on the selected images. Continue?' );
+
+				if ( ! window.confirm( message ) ) {
 					event.preventDefault();
 				}
 			}

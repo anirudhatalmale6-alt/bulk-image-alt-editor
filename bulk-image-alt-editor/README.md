@@ -42,10 +42,24 @@ Extras on that screen:
 | Search | Matches titles, captions, descriptions and filenames. |
 | Select all N images matching this filter | Appears once you tick the header checkbox and there is more than one page. Applies to every image matching the current search and filter — never to the whole library unless that *is* your current filter. Asks for confirmation. |
 | Undo this change | In the success notice. Restores the previous ALT values. Valid for 24 hours or one use. |
+| Also set the image Title | Checkbox next to Apply. Title is a separate field from ALT and is what most themes render as the hover tooltip. Undo restores both. |
 | Images per page | Quick links above the table: 20 / 50 / 100 / 200 / 500. The choice is saved per user. Screen Options sets the same value and accepts anything up to 500. |
 
-**Media > Library (list mode)** also gains a **Set ALT text** bulk action, with
-an inline text field, driven by the same code.
+**Media > Library (list mode)** also gains **Set ALT text** and **Set ALT text
+and Title** bulk actions, with an inline text field, driven by the same code.
+
+### ALT is not the tooltip
+
+`alt` is read by screen readers and search engines and is normally invisible.
+The tooltip on hover comes from the `title` attribute, which WordPress core does
+not even emit — themes, page builders and lightboxes add it, usually from the
+attachment Title. Changing ALT will never change that tooltip, which is why the
+Title checkbox exists.
+
+Note also that WordPress **copies** the ALT into post content when an image is
+inserted in the editor. That copy is a snapshot: images rendered by the theme
+from the Media Library pick up new values immediately, but an image already
+embedded in a post keeps the ALT frozen into its HTML until it is re-inserted.
 
 Leaving the field empty and pressing Apply clears the ALT text on the selected
 images, behind a confirmation prompt.

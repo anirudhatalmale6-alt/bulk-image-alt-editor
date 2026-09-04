@@ -12,6 +12,19 @@
 
 	var L10N = window.wpbiaeMediaL10n || {};
 
+	// Either bulk action gets the inline field; only one of them also sets Title.
+	function isOurAction( value ) {
+		var list = L10N.actions || [];
+
+		for ( var i = 0; i < list.length; i++ ) {
+			if ( list[ i ] === value ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	document.addEventListener( 'DOMContentLoaded', function () {
 		var form = document.getElementById( 'posts-filter' );
 
@@ -28,8 +41,8 @@
 		var fields = [];
 
 		Array.prototype.forEach.call( selects, function ( select ) {
-			// Only build the field where the action actually exists.
-			if ( ! select.querySelector( 'option[value="' + L10N.action + '"]' ) ) {
+			// Only build the field where our actions actually exist.
+			if ( ! select.querySelector( 'option[value="' + ( L10N.actions || [] )[ 0 ] + '"]' ) ) {
 				return;
 			}
 
@@ -66,7 +79,7 @@
 
 		function activeField() {
 			for ( var i = 0; i < fields.length; i++ ) {
-				if ( L10N.action === fields[ i ].select.value ) {
+				if ( isOurAction( fields[ i ].select.value ) ) {
 					return fields[ i ];
 				}
 			}
@@ -84,7 +97,7 @@
 
 		function refresh() {
 			fields.forEach( function ( field ) {
-				var on = L10N.action === field.select.value;
+				var on = isOurAction( field.select.value );
 
 				field.wrap.classList.toggle( 'is-visible', on );
 				// Keep an inactive field out of the submitted query string.

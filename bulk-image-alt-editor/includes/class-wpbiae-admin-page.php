@@ -225,7 +225,8 @@ class WPBIAE_Admin_Page {
 			'wpbiae-admin',
 			'wpbiaeL10n',
 			array(
-				'confirmEmpty'   => __( 'The ALT text field is empty. Applying it will CLEAR the ALT text on the images you selected. Continue?', 'bulk-image-alt-editor' ),
+				'confirmEmpty'      => __( 'The ALT text field is empty. Applying it will CLEAR the ALT text on the images you selected. Continue?', 'bulk-image-alt-editor' ),
+				'confirmEmptyTitle' => __( 'The text field is empty. Applying it will CLEAR the ALT text AND blank the Title on the images you selected. Continue?', 'bulk-image-alt-editor' ),
 				/* translators: %s: number of images. */
 				'confirmAll'     => __( 'This will replace the ALT text on all %s images matching the current filter. Continue?', 'bulk-image-alt-editor' ),
 				'noSelection'    => __( 'Tick at least one image first.', 'bulk-image-alt-editor' ),
@@ -298,7 +299,9 @@ class WPBIAE_Admin_Page {
 			$this->redirect( $filters, array( 'wpbiae_msg' => 'noselection' ) );
 		}
 
-		$result = WPBIAE_Updater::apply( $ids, $alt );
+		$also_title = ! empty( $_POST['wpbiae_also_title'] );
+
+		$result = WPBIAE_Updater::apply( $ids, $alt, $also_title );
 
 		$args = array(
 			'wpbiae_msg' => 'applied',
@@ -306,6 +309,7 @@ class WPBIAE_Admin_Page {
 			'unchanged'  => $result['unchanged'],
 			'skipped'    => $result['skipped'],
 			'failed'     => $result['failed'],
+			'titles'     => $result['titles'],
 		);
 
 		$token = WPBIAE_Updater::store_undo( $result['previous'] );
@@ -373,7 +377,7 @@ class WPBIAE_Admin_Page {
 	 * (pagination, sorting, views) do not carry it around.
 	 */
 	private function read_notice() {
-		$keys = array( 'wpbiae_msg', 'updated', 'unchanged', 'skipped', 'failed', 'undo', 'restored', 'wpbiae_pp', '_wpnonce' );
+		$keys = array( 'wpbiae_msg', 'updated', 'unchanged', 'skipped', 'failed', 'titles', 'undo', 'restored', 'wpbiae_pp', '_wpnonce' );
 
 		if ( isset( $_GET['wpbiae_msg'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$this->notice = array(
@@ -382,6 +386,7 @@ class WPBIAE_Admin_Page {
 				'unchanged' => isset( $_GET['unchanged'] ) ? (int) $_GET['unchanged'] : 0, // phpcs:ignore WordPress.Security.NonceVerification
 				'skipped'   => isset( $_GET['skipped'] ) ? (int) $_GET['skipped'] : 0, // phpcs:ignore WordPress.Security.NonceVerification
 				'failed'    => isset( $_GET['failed'] ) ? (int) $_GET['failed'] : 0, // phpcs:ignore WordPress.Security.NonceVerification
+				'titles'    => isset( $_GET['titles'] ) ? (int) $_GET['titles'] : 0, // phpcs:ignore WordPress.Security.NonceVerification
 				'restored'  => isset( $_GET['restored'] ) ? (int) $_GET['restored'] : 0, // phpcs:ignore WordPress.Security.NonceVerification
 				'undo'      => isset( $_GET['undo'] ) ? sanitize_key( wp_unslash( $_GET['undo'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification
 			);
@@ -446,6 +451,14 @@ class WPBIAE_Admin_Page {
 			_n( '%s image updated.', '%s images updated.', $n['updated'], 'bulk-image-alt-editor' ),
 			number_format_i18n( $n['updated'] )
 		);
+
+		if ( ! empty( $n['titles'] ) ) {
+			$parts[] = sprintf(
+				/* translators: %s: number of images. */
+				_n( 'Title also changed on %s image.', 'Title also changed on %s images.', $n['titles'], 'bulk-image-alt-editor' ),
+				number_format_i18n( $n['titles'] )
+			);
+		}
 
 		if ( $n['unchanged'] > 0 ) {
 			$parts[] = sprintf(
@@ -556,6 +569,16 @@ class WPBIAE_Admin_Page {
 						<?php esc_html_e( 'Apply to selected images', 'bulk-image-alt-editor' ); ?>
 					</button>
 					<span class="wpbiae-count" id="wpbiae-count" aria-live="polite"></span>
+
+					<div class="wpbiae-alsotitle">
+						<label for="wpbiae-also-title">
+							<input type="checkbox" name="wpbiae_also_title" id="wpbiae-also-title" value="1" />
+							<?php esc_html_e( 'Also set the image Title to the same text', 'bulk-image-alt-editor' ); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e( 'Title is a separate field from ALT. It is the name in bold in the File column below, and it is what most themes turn into the little tooltip that appears when you hover over an image. ALT is for screen readers and search engines, and is not normally shown on screen.', 'bulk-image-alt-editor' ); ?>
+						</p>
+					</div>
 				</div>
 
 				<div class="wpbiae-selectall" id="wpbiae-selectall" hidden>

@@ -63,6 +63,20 @@
 	text-decoration: underline;
 }
 
+.wpbiae-alsotitle {
+	flex: 1 0 100%;
+	margin: 4px 0 0;
+}
+
+.wpbiae-alsotitle label {
+	font-weight: 600;
+}
+
+.wpbiae-alsotitle .description {
+	margin: 4px 0 0 24px;
+	max-width: 60em;
+}
+
 .wpbiae-perpage {
 	clear: both;
 	margin: 0 0 6px;

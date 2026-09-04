@@ -45,26 +45,32 @@ class WPBIAE_Updater {
 	 * The value is written as the complete new ALT: no prefix, no suffix, no
 	 * merge with what was there before.
 	 *
-	 * @param int[]  $ids Attachment IDs.
-	 * @param string $alt Cleaned ALT text (already run through self::clean()).
+	 * @param int[]  $ids        Attachment IDs.
+	 * @param string $alt        Cleaned ALT text (already run through self::clean()).
+	 * @param bool   $also_title Also set the attachment Title to the same text.
+	 *                           Title is a separate field from ALT: it is what many
+	 *                           themes turn into the tooltip shown on mouse-over.
 	 * @return array {
-	 *     @type int   $updated   Images whose stored ALT now equals $alt and previously did not.
-	 *     @type int   $unchanged Images that already held exactly this ALT.
+	 *     @type int   $updated   Images where ALT and/or Title now match and previously did not.
+	 *     @type int   $unchanged Images that already held exactly these values.
 	 *     @type int   $skipped   Images the current user may not edit, or that were not images.
-	 *     @type int   $failed    Images where the write did not stick.
-	 *     @type array $previous  Map of attachment ID => previous ALT, for undo.
+	 *     @type int   $failed    Images where a write did not stick.
+	 *     @type int   $titles    How many Titles were changed.
+	 *     @type array $previous  Map of ID => array( 'alt' => .., 'title' => .. ), for undo.
 	 * }
 	 */
-	public static function apply( array $ids, $alt ) {
+	public static function apply( array $ids, $alt, $also_title = false ) {
 		$result = array(
 			'updated'   => 0,
 			'unchanged' => 0,
 			'skipped'   => 0,
 			'failed'    => 0,
+			'titles'    => 0,
 			'previous'  => array(),
 		);
 
-		$alt = (string) $alt;
+		$alt        = (string) $alt;
+		$also_title = (bool) $also_title;
 
 		foreach ( $ids as $id ) {
 			$id = (int) $id;
@@ -74,27 +80,59 @@ class WPBIAE_Updater {
 				continue;
 			}
 
-			$before = (string) get_post_meta( $id, WPBIAE_META_KEY, true );
+			$before       = (string) get_post_meta( $id, WPBIAE_META_KEY, true );
+			$before_title = (string) get_the_title( $id );
 
-			if ( $before === $alt ) {
+			$alt_needs   = ( $before !== $alt );
+			$title_needs = ( $also_title && $before_title !== $alt );
+
+			if ( ! $alt_needs && ! $title_needs ) {
 				$result['unchanged']++;
 				continue;
 			}
 
-			// update_post_meta() expects a slashed value; it unslashes on the way in.
-			update_post_meta( $id, WPBIAE_META_KEY, wp_slash( $alt ) );
+			$failed = false;
 
-			// Read it back rather than trusting the return value: update_post_meta()
-			// returns false both for "no change" and for a genuine failure.
-			$after = (string) get_post_meta( $id, WPBIAE_META_KEY, true );
+			if ( $alt_needs ) {
+				// update_post_meta() expects a slashed value; it unslashes on the way in.
+				update_post_meta( $id, WPBIAE_META_KEY, wp_slash( $alt ) );
 
-			if ( $after !== $alt ) {
+				// Read it back rather than trusting the return value: update_post_meta()
+				// returns false both for "no change" and for a genuine failure.
+				if ( (string) get_post_meta( $id, WPBIAE_META_KEY, true ) !== $alt ) {
+					$failed = true;
+				}
+			}
+
+			if ( ! $failed && $title_needs ) {
+				// wp_update_post() unslashes what it is given, so slash on the way in
+				// or every backslash in the text is silently eaten.
+				wp_update_post(
+					array(
+						'ID'         => $id,
+						'post_title' => wp_slash( $alt ),
+					)
+				);
+
+				clean_post_cache( $id );
+
+				if ( (string) get_the_title( $id ) !== $alt ) {
+					$failed = true;
+				} else {
+					$result['titles']++;
+				}
+			}
+
+			if ( $failed ) {
 				$result['failed']++;
 				continue;
 			}
 
 			if ( count( $result['previous'] ) < self::UNDO_LIMIT ) {
-				$result['previous'][ $id ] = $before;
+				$result['previous'][ $id ] = array(
+					'alt'   => $before,
+					'title' => $title_needs ? $before_title : null,
+				);
 			}
 
 			$result['updated']++;
@@ -113,25 +151,49 @@ class WPBIAE_Updater {
 	}
 
 	/**
-	 * Restore a set of previous ALT values.
+	 * Restore a set of previous values.
 	 *
-	 * @param array $map Attachment ID => ALT text to restore.
+	 * @param array $map Attachment ID => array( 'alt' => .., 'title' => .. ).
+	 *                   A bare string is accepted too, so a snapshot taken by an
+	 *                   older version of this plugin still undoes cleanly.
 	 * @return int Number of images restored.
 	 */
 	public static function restore( array $map ) {
 		$restored = 0;
 
-		foreach ( $map as $id => $alt ) {
-			$id  = (int) $id;
-			$alt = (string) $alt;
+		foreach ( $map as $id => $entry ) {
+			$id = (int) $id;
 
 			if ( $id <= 0 || ! self::is_editable_image( $id ) ) {
 				continue;
 			}
 
+			if ( is_array( $entry ) ) {
+				$alt   = isset( $entry['alt'] ) ? (string) $entry['alt'] : '';
+				$title = ( isset( $entry['title'] ) && null !== $entry['title'] ) ? (string) $entry['title'] : null;
+			} else {
+				$alt   = (string) $entry;
+				$title = null;
+			}
+
 			update_post_meta( $id, WPBIAE_META_KEY, wp_slash( $alt ) );
 
-			if ( (string) get_post_meta( $id, WPBIAE_META_KEY, true ) === $alt ) {
+			$ok = ( (string) get_post_meta( $id, WPBIAE_META_KEY, true ) === $alt );
+
+			if ( null !== $title ) {
+				wp_update_post(
+					array(
+						'ID'         => $id,
+						'post_title' => wp_slash( $title ),
+					)
+				);
+
+				clean_post_cache( $id );
+
+				$ok = $ok && ( (string) get_the_title( $id ) === $title );
+			}
+
+			if ( $ok ) {
 				$restored++;
 			}
 		}
