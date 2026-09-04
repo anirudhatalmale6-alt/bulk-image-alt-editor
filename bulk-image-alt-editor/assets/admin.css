@@ -1,0 +1,124 @@
+/**
+ * Bulk Image ALT Editor - admin screen styles.
+ *
+ * Deliberately minimal: it borrows core admin classes wherever it can so the
+ * screen keeps looking native after a WordPress update.
+ *
+ * @package Bulk_Image_Alt_Editor
+ */
+
+.wpbiae-intro {
+	max-width: 46em;
+	color: #50575e;
+}
+
+/* Contains the floated .search-box so the apply bar below starts on its own line. */
+.wpbiae-search-form {
+	margin: 0 0 6px;
+	overflow: hidden;
+}
+
+.wpbiae-bar {
+	clear: both;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 12px 0;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-left: 4px solid #2271b1;
+	box-shadow: 0 1px 1px rgba( 0, 0, 0, 0.04 );
+}
+
+.wpbiae-bar-bottom {
+	border-left-color: #c3c4c7;
+}
+
+.wpbiae-bar-label {
+	font-weight: 600;
+}
+
+.wpbiae-alt-input {
+	flex: 1 1 320px;
+	min-width: 220px;
+}
+
+.wpbiae-count,
+.wpbiae-count-bottom {
+	color: #50575e;
+	font-style: italic;
+}
+
+.wpbiae-selectall {
+	margin: 0 0 8px;
+	padding: 8px 12px;
+	background: #f0f6fc;
+	border: 1px solid #c5d9ed;
+	text-align: center;
+}
+
+.wpbiae-selectall-link {
+	text-decoration: underline;
+}
+
+.wpbiae-filename {
+	color: #646970;
+	font-size: 12px;
+	word-break: break-all;
+}
+
+.wpbiae-empty-alt {
+	color: #b32d2e;
+	font-style: italic;
+}
+
+.wpbiae-current-alt {
+	word-break: break-word;
+}
+
+.wpbiae-wrap .column-thumb {
+	width: 74px;
+}
+
+.wpbiae-wrap .column-date {
+	width: 12%;
+}
+
+.wpbiae-wrap .column-alt {
+	width: 34%;
+}
+
+.wpbiae-wrap img.wpbiae-thumb {
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+	display: block;
+	background: #f0f0f1;
+}
+
+/* The inline ALT field on Media > Library (list mode). */
+.wpbiae-bulk-alt-wrap {
+	display: none;
+	margin: 0 6px 0 0;
+}
+
+.wpbiae-bulk-alt-wrap.is-visible {
+	display: inline-block;
+}
+
+.wpbiae-bulk-alt-wrap input {
+	vertical-align: baseline;
+}
+
+@media screen and ( max-width: 782px ) {
+	.wpbiae-bar {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.wpbiae-alt-input {
+		width: 100%;
+	}
+}
